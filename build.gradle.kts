@@ -30,7 +30,7 @@ val orxFeatures = setOf<String>(
 //  "orx-jumpflood",
 //  "orx-kdtree",
 //  "orx-keyframer",      
-//  "orx-kinect-v1",
+    "orx-kinect-v1",
 //  "orx-kotlin-parser",
 //  "orx-mesh-generators",
 //  "orx-midi",
@@ -52,7 +52,7 @@ val orxFeatures = setOf<String>(
     "orx-shapes",
 //  "orx-syphon",
 //  "orx-temporal-blur",
-//  "orx-tensorflow",    
+    "orx-tensorflow",
 //  "orx-time-operators",
 //  "orx-timer",
 //  "orx-triangulation",
@@ -61,15 +61,15 @@ val orxFeatures = setOf<String>(
 
 /** ## additional ORML features to be added to this project */
 val ormlFeatures = setOf<String>(
-//    "orml-blazepose",
-//    "orml-dbface",
-//    "orml-facemesh",
+      "orml-blazepose",
+      "orml-dbface",
+      "orml-facemesh",
 //    "orml-image-classifier",
 //    "orml-psenet",
-//    "orml-ssd",
+     "orml-ssd",
 //    "orml-style-transfer",
 //    "orml-super-resolution",
-//    "orml-u2net",
+      "orml-u2net",
 )
 
 /** ## additional OPENRNDR features to be added to this project */
@@ -103,6 +103,9 @@ dependencies {
 //    implementation(libs.gson)
 //    implementation(libs.csv)
 
+
+    implementation(files("data/libs/j4k-natives-windows-amd64.jar"))
+    implementation(files("data/libs/ufdw.jar"))
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlin.logging)
 
@@ -206,7 +209,7 @@ class Openrndr {
     val ormlVersion = libs.versions.orml.get()
 
     // choices are "orx-tensorflow-gpu", "orx-tensorflow"
-    val orxTensorflowBackend = "orx-tensorflow"
+    val orxTensorflowBackend = "orx-tensorflow-gpu"
 
     val os = if (project.hasProperty("targetPlatform")) {
         val supportedPlatforms = setOf("windows", "macos", "linux-x64", "linux-arm64")
