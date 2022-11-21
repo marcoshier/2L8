@@ -30,7 +30,7 @@ val orxFeatures = setOf<String>(
 //  "orx-jumpflood",
 //  "orx-kdtree",
 //  "orx-keyframer",      
-    "orx-kinect-v1",
+// "orx-kinect-v1",
 //  "orx-kotlin-parser",
 //  "orx-mesh-generators",
 //  "orx-midi",
@@ -61,15 +61,15 @@ val orxFeatures = setOf<String>(
 
 /** ## additional ORML features to be added to this project */
 val ormlFeatures = setOf<String>(
-      "orml-blazepose",
-      "orml-dbface",
-      "orml-facemesh",
+ //     "orml-blazepose",
+  //    "orml-dbface",
+//      "orml-facemesh",
 //    "orml-image-classifier",
 //    "orml-psenet",
-     "orml-ssd",
+ //    "orml-ssd",
 //    "orml-style-transfer",
 //    "orml-super-resolution",
-      "orml-u2net",
+ //     "orml-u2net",
 )
 
 /** ## additional OPENRNDR features to be added to this project */

@@ -1,3 +1,4 @@
+package ml/*
 import org.openrndr.application
 import org.openrndr.draw.colorBuffer
 import org.openrndr.ffmpeg.VideoPlayerConfiguration
@@ -16,12 +17,13 @@ fun main() = application {
         val vc = VideoPlayerConfiguration().apply {
             allowFrameSkipping = false
         }
-        val video = loadVideo("data/videos/rottingRot.mp4", configuration = vc).apply {
+        val video = loadVideo("data/videos/red.mp4", configuration = vc).apply {
             play()
         }
 
         val u2 = U2Net.load()
         u2.start()
+        
 
         val cb = colorBuffer(width,height)
         val cutout = colorBuffer(width, height)
@@ -43,8 +45,4 @@ fun main() = application {
         }
     }
 }
-
-fun IntRectangle.flipped(): IntRectangle {
-    // this is only for y axis
-    return IntRectangle(0, height, width, -height)
-}
+*/

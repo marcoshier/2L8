@@ -1,3 +1,4 @@
+
 import kotlinx.coroutines.yield
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
@@ -14,59 +15,48 @@ import kotlin.math.min
 
 fun main() = application {
     configure {
-        width = 1920 / 2
-        height = 1080 / 2
+        width = 1080 / 2
+        height = 1920 / 2
     }
     program {
 
-        val files = File("data/images/redApple/").listFiles()?.filter { it.isFile }?.sortedBy {
+        val files = File("offline-data/offline-data/red/").listFiles()?.filter { it.isFile }?.sortedBy {
             it.nameWithoutExtension.toInt()
-        }
+        }!!.take(300)
         val at = arrayTexture(width, height, files!!.size)
-
-        val webcam = loadVideoDevice().apply { play() }
-        val cb = colorBuffer(width, height)
-
-        val bp = BlazePoseDetector.load()
-
-        webcam.newFrame.listen {
-            it.frame.copyTo(cb,
-                sourceRectangle = it.frame.bounds.toInt(),
-                targetRectangle = cb.bounds.toInt().flipped())
-        }
 
         files.mapIndexed { i, it ->
             loadImage(it).copyTo(at, i)
             println(it.nameWithoutExtension)
         }
 
-        var min = 1000.0
-        var max = 0.0
+        val kinect = Kinect()
+        kinect.start(32)
 
+        var min = 0.5
+        var max = 4.1
+
+        println((files.size - 1).toDouble())
 
 
         extend {
-            webcam.draw(drawer, true)
+            kinect.videoTexture.update(kinect.colorWidth, kinect.colorHeight, kinect.colorFrame)
+            kinect.skeletons.firstNotNullOf {
+                if(it != null && it.isTracked) {
+                    val z = it.get3DJointZ(1).toDouble()
 
-            val regions = bp.detect(cb)
-            if (regions.isNotEmpty()) {
-                computeRoi(regions[0])
-                val z = regions[0].rectangle.area
 
-                min = min(z, min)
-                max = max(z, max)
+                    println("$min min    $max max") //0.5 4.1
 
-                val mappedDistance = map(min, max, 678.0, 0.0, z)
-                drawer.image(at, mappedDistance.toInt())
+                    val mappedDistance = map(min, max, (files.size - 1).toDouble(), 0.0, z)
+                    drawer.image(at, mappedDistance.toInt())
 
-                println(z)
-
-                drawer.fill = null
-                drawer.stroke = ColorRGBa.GREEN
-                drawer.rectangle(regions[0].rectangle)
-            } else {
-                println("empty")
+                }
             }
+
+
+
+
 
 
         }

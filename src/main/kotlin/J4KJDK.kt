@@ -28,7 +28,7 @@ fun main() = application {
                     min = min(it.get3DJointZ(1).toDouble(), min)
                     max = max(it.get3DJointZ(1).toDouble(), max)
 
-                    println(it.get3DJointZ(1))
+                    println("$min min    $max max") //0.5 4.1
                 }
             }
 
