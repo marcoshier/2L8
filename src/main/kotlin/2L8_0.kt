@@ -8,6 +8,7 @@ import org.openrndr.draw.isolated
 import org.openrndr.draw.loadImage
 import org.openrndr.extra.color.presets.MINT_CREAM
 import org.openrndr.extra.fx.patterns.Checkers
+import org.openrndr.extra.minim.minim
 import org.openrndr.ffmpeg.loadVideo
 import org.openrndr.ffmpeg.loadVideoDevice
 import org.openrndr.launch
@@ -23,6 +24,9 @@ fun main() = application {
         height = 1920 / 2
     }
     program {
+
+        val player = minim().loadFile("offline-data/0.wav")
+        player.play()
 
         val files = File("offline-data/red/").listFiles()?.filter { it.isFile }?.sortedBy {
             it.nameWithoutExtension.toInt()
@@ -40,8 +44,6 @@ fun main() = application {
         var min = 0.5
         var max = 4.1
 
-        println((files.size - 1).toDouble())
-
         val cb = colorBuffer(width, height)
         val ch = Checkers().apply {
             this.background = ColorRGBa.MINT_CREAM.shade(0.9)
@@ -52,7 +54,16 @@ fun main() = application {
 
         var lastZ = 0.0
 
+
         extend {
+
+            if (!player.isPlaying) {
+                player.apply {
+                    rewind()
+                    play()
+                }
+            }
+
             kinect.videoTexture.update(kinect.colorWidth, kinect.colorHeight, kinect.colorFrame)
 
             drawer.isolated {
@@ -78,6 +89,10 @@ fun main() = application {
             }?: run {
                 println("lonely")
             }
+
+            val mappedGain = map(0.0, (files.size - 1).toDouble(), 0.0, -60.0, lastZ)
+            player.shiftGain(player.gain, mappedGain.toFloat(), 0)
+
 
             val mappedScale = map(0.0, (files.size - 1).toDouble(), 0.5, 0.9, lastZ.coerceAtLeast(100.0))
 
