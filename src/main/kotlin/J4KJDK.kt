@@ -48,9 +48,6 @@ class Kinect(val videoTexture: VideoFrame = VideoFrame()): J4KSDK() {
         XYZ: FloatArray?,
         UV: FloatArray?
     ) {
-        val map = DepthMap(depthWidth, depthHeight, XYZ)
-        if (UV != null) map.setUV(UV)
-        println("frameDepth received")
     }
 
 

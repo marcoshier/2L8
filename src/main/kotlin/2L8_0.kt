@@ -2,11 +2,9 @@
 import kotlinx.coroutines.yield
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.arrayTexture
-import org.openrndr.draw.colorBuffer
-import org.openrndr.draw.isolated
-import org.openrndr.draw.loadImage
+import org.openrndr.draw.*
 import org.openrndr.extra.color.presets.MINT_CREAM
+import org.openrndr.extra.fx.color.ColorCorrection
 import org.openrndr.extra.fx.patterns.Checkers
 import org.openrndr.extra.minim.minim
 import org.openrndr.ffmpeg.loadVideo
@@ -25,9 +23,6 @@ fun main() = application {
     }
     program {
 
-        val player = minim().loadFile("offline-data/0.wav")
-        player.play()
-
         val files = File("offline-data/red/").listFiles()?.filter { it.isFile }?.sortedBy {
             it.nameWithoutExtension.toInt()
         }!!
@@ -38,11 +33,21 @@ fun main() = application {
             println(it.nameWithoutExtension)
         }
 
+        val player = minim().loadFile("offline-data/0.wav")
+        player.play()
+
         val kinect = Kinect()
         kinect.start(32)
 
-        var min = 0.5
-        var max = 4.1
+        var min = 0.6
+        var max = 4.0
+
+        val cc = ColorCorrection()
+        val rt = renderTarget(width, height) {
+            colorBuffer()
+            depthBuffer()
+        }
+        val cb2 = colorBuffer(width, height)
 
         val cb = colorBuffer(width, height)
         val ch = Checkers().apply {
@@ -54,7 +59,6 @@ fun main() = application {
 
         var lastZ = 0.0
 
-
         extend {
 
             if (!player.isPlaying) {
@@ -64,42 +68,67 @@ fun main() = application {
                 }
             }
 
-            kinect.videoTexture.update(kinect.colorWidth, kinect.colorHeight, kinect.colorFrame)
-
-            drawer.isolated {
-                drawer.translate(cb.bounds.center)
-                drawer.scale(2.1)
-                drawer.rotate(44.0)
-                drawer.translate(-cb.bounds.center)
-                drawer.image(cb)
+            drawer.run {
+                isolated {
+                    translate(cb.bounds.center)
+                    scale(2.1)
+                    rotate(44.0)
+                    translate(-cb.bounds.center)
+                    image(cb)
+                }
             }
+
+            kinect.videoTexture.update(kinect.colorWidth, kinect.colorHeight, kinect.colorFrame)
 
             val skeletons = kinect.skeletons.toList().filterNotNull()
             skeletons.firstOrNull { it.isTracked }?.let {
 
                 val x = it.get3DJointX(1).toDouble()
-                drawer.fill = ColorRGBa.BLACK
-                drawer.text(x.toString(), 10.0, 10.0)
 
                 if(x >= -1.1 && x <= 1.0) {
                     val z = it.get3DJointZ(1).toDouble()
-                    lastZ = map(min, max, (files.size - 1).toDouble(), 0.0, z)
+
+                    if(z in min..max) {
+                        lastZ = map(min, max, 1.0, 0.0, z).coerceIn(0.0, 1.0)
+                    } else {
+                        println("outta range $lastZ")
+                    }
+
+                    if(z == 0.0) {
+                        lastZ = 0.0
+                    }
+
+
+
+                    println(z)
+
                 }
+
 
             }?: run {
                 println("lonely")
             }
 
-            val mappedGain = map(0.0, (files.size - 1).toDouble(), 0.0, -60.0, lastZ)
-            player.shiftGain(player.gain, mappedGain.toFloat(), 0)
+            val mappedGain = map(0.0, 1.0, -12.0, 7.0, lastZ)
+            player.gain = mappedGain.toFloat()
 
+            val mappedScale = map(0.0, 1.0, 0.5, 0.9, lastZ.coerceAtLeast(0.55))
 
-            val mappedScale = map(0.0, (files.size - 1).toDouble(), 0.5, 0.9, lastZ.coerceAtLeast(100.0))
+            drawer.isolatedWithTarget(rt) {
+                drawer.clear(ColorRGBa.TRANSPARENT)
 
-            drawer.translate(drawer.bounds.center)
-            drawer.scale(mappedScale)
-            drawer.translate(Vector2(-width / 8.0, -height / 3.6) - drawer.bounds.center)
-            drawer.image(at, lastZ.toInt())
+                drawer.translate(drawer.bounds.center)
+                drawer.scale(mappedScale)
+                drawer.translate(- drawer.bounds.center)
+                drawer.image(at, (lastZ * files.size).toInt())
+
+            }
+
+            cc.apply {
+                brightness = 0.0 + ((1.0 - lastZ) / 5.0)
+            }
+            cc.apply(rt.colorBuffer(0), cb2)
+            drawer.image(cb2)
         }
 
     }
